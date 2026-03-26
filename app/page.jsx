@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import { Roboto_Mono } from "next/font/google";
-// FIXED: Added useInView here
 import { motion, useScroll, useTransform, useMotionValueEvent, useInView } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -11,12 +10,12 @@ import dynamic from "next/dynamic";
 
 // LAZY LOAD THE 3D SCENE
 const DynamicPhysics = dynamic(() => import('../components/PhysicsScene'), {
-  ssr: false, 
+  ssr: false,
 });
 
-const robotoMono = Roboto_Mono({ 
-  subsets: ["latin"], 
-  weight: ["300", "400", "700"] 
+const robotoMono = Roboto_Mono({
+  subsets: ["latin"],
+  weight: ["300", "400", "700"]
 });
 
 const bioContent = [
@@ -51,20 +50,18 @@ const bioContent = [
   { l: "INTO TANGIBLE", r: "REALITIES" },
   { l: "THAT RESONATE", r: "WITH USERS" },
   { l: "WORLDWIDE.", r: "LET'S TALK." },
-
 ];
 
 export default function Home() {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
-  const waveWrapperRef = useRef(null); 
-  
-  // FIXED: Added a ref for the 3D section to track when it enters the screen
+  const waveWrapperRef = useRef(null);
+
   const physicsContainerRef = useRef(null);
   const isPhysicsInView = useInView(physicsContainerRef, { once: true, margin: "200px" });
 
   const imagesRef = useRef([]);
-  const totalFrames = 192; 
+  const totalFrames = 192;
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -91,7 +88,6 @@ export default function Home() {
     ctx.drawImage(img, offsetX, offsetY, newWidth, newHeight);
   }, []);
 
-  // FIXED: Staggered Image Loading to prevent browser freezing
   useEffect(() => {
     const loadedImages = new Array(totalFrames).fill(null);
     imagesRef.current = loadedImages;
@@ -106,12 +102,10 @@ export default function Home() {
       loadedImages[index - 1] = img;
     };
 
-    // Instantly load first 10 frames
     for (let i = 1; i <= 10; i++) {
       loadFrame(i);
     }
 
-    // Load the rest in the background after 1 second
     const timeoutId = setTimeout(() => {
       for (let i = 11; i <= totalFrames; i++) {
         setTimeout(() => loadFrame(i), i * 5);
@@ -134,8 +128,7 @@ export default function Home() {
       currentFrameIndex = 159 + Math.floor(segmentProgress * 32);
     }
     currentFrameIndex = Math.min(totalFrames - 1, Math.max(0, currentFrameIndex));
-    
-    // Safely check if the image has actually loaded yet before drawing
+
     const img = imagesRef.current[currentFrameIndex];
     if (img && img.complete) drawImage(img);
   });
@@ -164,9 +157,9 @@ export default function Home() {
 
       if (!leftTexts.length || !rightTexts.length) return;
 
-      const wavePhaseStep = 0.5; 
-      const waveSpeed = 0.8; 
-      const waveAmplitude = 0.5; 
+      const wavePhaseStep = 0.5;
+      const waveSpeed = 0.8;
+      const waveAmplitude = 0.5;
 
       const leftQuickSetters = leftTexts.map(text => gsap.quickTo(text, "x", { duration: 0.6, ease: "power4.out" }));
       const rightQuickSetters = rightTexts.map(text => gsap.quickTo(text, "x", { duration: 0.6, ease: "power4.out" }));
@@ -177,7 +170,7 @@ export default function Home() {
       const calculateRanges = () => {
         const maxLeftTextWidth = Math.max(...leftTexts.map((t) => t.offsetWidth));
         const maxRightTextWidth = Math.max(...rightTexts.map((t) => t.offsetWidth));
-        
+
         leftRange.maxX = Math.max(0, leftColumn.offsetWidth - maxLeftTextWidth) * waveAmplitude;
         rightRange.maxX = Math.max(0, rightColumn.offsetWidth - maxRightTextWidth) * waveAmplitude;
       };
@@ -199,7 +192,7 @@ export default function Home() {
       setInitialPositions(rightTexts, rightRange, -1);
 
       ScrollTrigger.create({
-        trigger: wrapper, 
+        trigger: wrapper,
         start: "top bottom",
         end: "bottom top",
         onUpdate: (self) => {
@@ -231,25 +224,25 @@ export default function Home() {
               if (index === closestIndex) {
                 if (text.dataset.focused !== "true") {
                   text.dataset.focused = "true";
-                  gsap.to(text, { 
-                    scale: 1.05, 
-                    color: "white", 
-                    opacity: 1, 
-                    textShadow: "0 0 20px rgba(255,255,255,0.4)", 
-                    duration: 0.2, 
-                    overwrite: "auto" 
+                  gsap.to(text, {
+                    scale: 1.05,
+                    color: "white",
+                    opacity: 1,
+                    textShadow: "0 0 20px rgba(255,255,255,0.4)",
+                    duration: 0.2,
+                    overwrite: "auto"
                   });
                 }
               } else {
                 if (text.dataset.focused !== "false") {
                   text.dataset.focused = "false";
-                  gsap.to(text, { 
-                    scale: 1, 
-                    color: "#4d4d4d", 
-                    opacity: 0.4, 
-                    textShadow: "none", 
-                    duration: 0.2, 
-                    overwrite: "auto" 
+                  gsap.to(text, {
+                    scale: 1,
+                    color: "#4d4d4d",
+                    opacity: 0.4,
+                    textShadow: "none",
+                    duration: 0.2,
+                    overwrite: "auto"
                   });
                 }
               }
@@ -271,38 +264,41 @@ export default function Home() {
   const glassOpacity = useTransform(scrollYProgress, [0, 0.8, 1], [0, 0, 1]);
 
   return (
-    <div className={`bg-black min-h-screen ${robotoMono.className}`}>
-      
+    <div className={`bg-black min-h-screen ${robotoMono.className} overflow-x-hidden`}>
+
       <div className="fixed top-0 left-0 w-full h-screen overflow-hidden z-0 pointer-events-none">
         <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full object-cover z-0" />
-        
-        <div className="absolute top-0 left-0 w-full h-full z-10 text-white">
-          <motion.div style={{ opacity: landingOpacity }} className="absolute bottom-20 left-1/2 -translate-x-1/2 text-center">
-            <h1 className="text-5xl md:text-7xl font-light tracking-widest uppercase">Muhammad Abubakar</h1>
-            <p className="mt-4 text-sm tracking-[0.3em] text-gray-400">Software Engineer</p>
+
+        <div className="absolute top-0 left-0 w-full h-full z-10 text-white flex flex-col justify-end items-center px-4 pb-24 md:pb-32">
+          <motion.div style={{ opacity: landingOpacity }} className="text-center">
+            {/* MOBILE FIX: Scaled text down slightly for small screens */}
+            <h1 className="text-4xl md:text-7xl font-light tracking-widest uppercase">Muhammad Abubakar</h1>
+            <p className="mt-4 text-xs md:text-sm tracking-[0.3em] text-gray-400">Software Engineer</p>
           </motion.div>
         </div>
 
-        <motion.div 
-          style={{ opacity: glassOpacity }} 
-          className="absolute inset-0 z-20 bg-white/[0.12] backdrop-blur-[24px] border-t border-white/20 shadow-[inset_0_1px_2px_rgba(255,255,255,0.2)]" 
+        <motion.div
+          style={{ opacity: glassOpacity }}
+          className="absolute inset-0 z-20 bg-white/[0.12] backdrop-blur-[24px] border-t border-white/20 shadow-[inset_0_1px_2px_rgba(255,255,255,0.2)]"
         />
       </div>
 
       <main ref={containerRef} className="relative w-full z-10 flex flex-col justify-center overflow-hidden pt-[200vh] pb-[10vh]">
-        <div className="sticky top-20 w-full text-center text-white/50 tracking-[0.5em] text-sm font-light z-[200] pointer-events-none mb-10">
+        <div className="sticky top-20 w-full text-center text-white/50 tracking-[0.5em] text-xs md:text-sm font-light z-[200] pointer-events-none mb-10">
           01 / BIO
         </div>
 
-        <div ref={waveWrapperRef} className="dual-wave-wrapper flex w-full relative gap-[10vw] px-[10vw]">
-          <div className="wave-column wave-column-left flex-1 flex flex-col items-start gap-[1vh] text-[clamp(1.2rem,2.5vw,2rem)] font-light leading-none relative z-[100]">
+        {/* MOBILE FIX: gap-4 on mobile, gap-[10vw] on desktop. px-4 on mobile. */}
+        <div ref={waveWrapperRef} className="dual-wave-wrapper flex w-full relative gap-4 md:gap-[10vw] px-4 md:px-[10vw]">
+          {/* MOBILE FIX: text clamp goes much smaller to fit mobile widths */}
+          <div className="wave-column wave-column-left flex-1 flex flex-col items-start gap-[1vh] text-[clamp(0.75rem,3vw,2rem)] font-light leading-none relative z-[100]">
             {bioContent.map((line, i) => (
               <div key={`l-${i}`} className="animated-text w-max origin-left uppercase text-[#4d4d4d] opacity-40">
                 {line.l}
               </div>
             ))}
           </div>
-          <div className="wave-column wave-column-right flex-1 flex flex-col items-end text-right gap-[1vh] text-[clamp(1.2rem,2.5vw,2rem)] font-light leading-none relative z-[100]">
+          <div className="wave-column wave-column-right flex-1 flex flex-col items-end text-right gap-[1vh] text-[clamp(0.75rem,3vw,2rem)] font-light leading-none relative z-[100]">
             {bioContent.map((line, i) => (
               <div key={`r-${i}`} className="animated-text w-max origin-right uppercase text-[#4d4d4d] opacity-40">
                 {line.r}
@@ -311,36 +307,44 @@ export default function Home() {
           </div>
         </div>
       </main>
-
-      {/* FIXED: Attached ref here. The 3D engine only turns on when you scroll to it! */}
-      <div ref={physicsContainerRef} className="relative w-full h-200 pt-50 bg-black [-webkit-mask-image:linear-gradient(to_bottom,transparent,black_200px)] [mask-image:linear-gradient(to_bottom,transparent,black_200px)] z-40">
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 text-white/50 tracking-[0.5em] text-sm font-light z-50 pointer-events-none">
+      {/* ---------------- TECH STACK SECTION ---------------- */}
+      {/* FIXED: Changed h-screen to h-[70vh] md:h-screen so it doesn't feel too tall on phones */}
+      <div ref={physicsContainerRef} className="relative w-full h-[70vh] md:h-screen bg-black [-webkit-mask-image:linear-gradient(to_bottom,transparent,black_200px)] [mask-image:linear-gradient(to_bottom,transparent,black_200px)] z-40">
+        <div className="absolute top-10 md:top-20 left-1/2 -translate-x-1/2 text-white/50 tracking-[0.5em] text-xs md:text-sm font-light z-50 pointer-events-none w-full text-center">
           02 / TECH STACK
         </div>
         {isPhysicsInView && <DynamicPhysics />}
       </div>
 
-      <section className="relative w-full bg-black text-white z-30 pt-15 pb-32">
-        <div className="text-center mb-16 text-white/50 tracking-[0.5em] text-sm font-light">
+
+          {/* ---------------- PROJECTS SECTION ---------------- */}
+      <section className="relative w-full bg-black text-white z-30 pt-10 md:pt-15 pb-32 flex flex-col items-center">
+        <div className="text-center mb-10 md:mb-16 text-white/50 tracking-[0.5em] text-xs md:text-sm font-light w-full">
           03 / PROJECTS
         </div>
         
-        <div className="max-w-5xl mx-auto px-4">
+        {/* Removed width constraints from wrapper, letting the cards define their own width */}
+        <div className="w-full flex justify-center">
           <ScrollStack useWindowScroll={true}>
             
+            {/* PROJECT 1 */}
             <ScrollStackItem>
-              <div className="bg-[#111111] border border-white/10 rounded-2xl h-[50vh] flex overflow-hidden">
-                <div className="flex-1 p-10 flex flex-col justify-center">
-                  <h2 className="text-4xl md:text-5xl font-light mb-2 tracking-widest uppercase">SIVO</h2>
-                  <p className="text-neutral-400 mb-8 tracking-wider font-light">Sign to speech & speech to sign</p>
-                  <div className="mt-auto flex flex-col gap-4">
+              {/* FIXED: Explicitly forced viewport width (vw) DIRECTLY on the card so it cannot shrink */}
+              <div className="w-[92vw] md:w-[80vw] max-w-6xl mx-auto bg-[#111111] border border-white/10 rounded-2xl flex flex-col md:flex-row overflow-hidden min-h-[50vh] md:h-[65vh]">
+                <div className="w-full h-40 md:hidden relative border-b border-white/10 shrink-0">
+                  <img src="https://picsum.photos/seed/sivo/800/800" alt="SIVO" className="w-full h-full object-cover opacity-60 grayscale" />
+                </div>
+                <div className="flex-1 p-6 md:p-12 flex flex-col justify-center">
+                  <h2 className="text-3xl md:text-6xl font-light mb-2 md:mb-4 tracking-widest uppercase">SIVO</h2>
+                  <p className="text-sm md:text-lg text-neutral-400 mb-6 md:mb-10 tracking-wider font-light">Sign to speech & speech to sign</p>
+                  <div className="mt-auto flex flex-col gap-3 md:gap-6">
                     <div>
-                      <p className="text-xs text-neutral-600 mb-1 uppercase tracking-[0.2em]">Backend</p>
-                      <p className="text-sm text-neutral-300 font-light tracking-wider">Python, Flask, TensorFlow</p>
+                      <p className="text-[10px] md:text-sm text-neutral-600 mb-1 md:mb-2 uppercase tracking-[0.2em]">Backend</p>
+                      <p className="text-xs md:text-base text-neutral-300 font-light tracking-wider">Python, Flask, TensorFlow</p>
                     </div>
                     <div>
-                      <p className="text-xs text-neutral-600 mb-1 uppercase tracking-[0.2em]">Frontend</p>
-                      <p className="text-sm text-neutral-300 font-light tracking-wider">React-Native</p>
+                      <p className="text-[10px] md:text-sm text-neutral-600 mb-1 md:mb-2 uppercase tracking-[0.2em]">Frontend</p>
+                      <p className="text-xs md:text-base text-neutral-300 font-light tracking-wider">React-Native</p>
                     </div>
                   </div>
                 </div>
@@ -350,19 +354,23 @@ export default function Home() {
               </div>
             </ScrollStackItem>
 
+            {/* PROJECT 2 */}
             <ScrollStackItem>
-              <div className="bg-[#111111] border border-white/10 rounded-2xl h-[50vh] flex overflow-hidden">
-                <div className="flex-1 p-10 flex flex-col justify-center">
-                  <h2 className="text-4xl md:text-5xl font-light mb-2 tracking-widest uppercase">Agrimind</h2>
-                  <p className="text-neutral-400 mb-8 tracking-wider font-light">AI farmers resource allocation system</p>
-                  <div className="mt-auto flex flex-col gap-4">
+              <div className="w-[92vw] md:w-[80vw] max-w-6xl mx-auto bg-[#111111] border border-white/10 rounded-2xl flex flex-col md:flex-row overflow-hidden min-h-[50vh] md:h-[65vh]">
+                <div className="w-full h-40 md:hidden relative border-b border-white/10 shrink-0">
+                  <img src="https://picsum.photos/seed/agrimind/800/800" alt="Agrimind" className="w-full h-full object-cover opacity-60 grayscale" />
+                </div>
+                <div className="flex-1 p-6 md:p-12 flex flex-col justify-center">
+                  <h2 className="text-3xl md:text-6xl font-light mb-2 md:mb-4 tracking-widest uppercase">Agrimind</h2>
+                  <p className="text-sm md:text-lg text-neutral-400 mb-6 md:mb-10 tracking-wider font-light">AI farmers resource allocation</p>
+                  <div className="mt-auto flex flex-col gap-3 md:gap-6">
                     <div>
-                      <p className="text-xs text-neutral-600 mb-1 uppercase tracking-[0.2em]">Backend</p>
-                      <p className="text-sm text-neutral-300 font-light tracking-wider leading-relaxed">Python (AI agents), Langgraph, Node.js, MongoDB</p>
+                      <p className="text-[10px] md:text-sm text-neutral-600 mb-1 md:mb-2 uppercase tracking-[0.2em]">Backend</p>
+                      <p className="text-xs md:text-base text-neutral-300 font-light tracking-wider leading-relaxed">Python (AI agents), Langgraph, Node.js, MongoDB</p>
                     </div>
                     <div>
-                      <p className="text-xs text-neutral-600 mb-1 uppercase tracking-[0.2em]">Frontend</p>
-                      <p className="text-sm text-neutral-300 font-light tracking-wider">Next.js, Tailwind</p>
+                      <p className="text-[10px] md:text-sm text-neutral-600 mb-1 md:mb-2 uppercase tracking-[0.2em]">Frontend</p>
+                      <p className="text-xs md:text-base text-neutral-300 font-light tracking-wider">Next.js, Tailwind</p>
                     </div>
                   </div>
                 </div>
@@ -372,19 +380,23 @@ export default function Home() {
               </div>
             </ScrollStackItem>
 
+            {/* PROJECT 3 */}
             <ScrollStackItem>
-              <div className="bg-[#111111] border border-white/10 rounded-2xl h-[50vh] flex overflow-hidden">
-                <div className="flex-1 p-10 flex flex-col justify-center">
-                  <h2 className="text-4xl md:text-4xl font-light mb-2 tracking-widest uppercase">Semi-Quant Auto</h2>
-                  <p className="text-neutral-400 mb-8 tracking-wider font-light">Future market strategy Automation</p>
-                  <div className="mt-auto flex flex-col gap-4">
+              <div className="w-[92vw] md:w-[80vw] max-w-6xl mx-auto bg-[#111111] border border-white/10 rounded-2xl flex flex-col md:flex-row overflow-hidden min-h-[50vh] md:h-[65vh]">
+                <div className="w-full h-40 md:hidden relative border-b border-white/10 shrink-0">
+                  <img src="https://picsum.photos/seed/quant/800/800" alt="Semi-Quant" className="w-full h-full object-cover opacity-60 grayscale" />
+                </div>
+                <div className="flex-1 p-6 md:p-12 flex flex-col justify-center">
+                  <h2 className="text-3xl md:text-5xl font-light mb-2 md:mb-4 tracking-widest uppercase">Semi-Quant Auto</h2>
+                  <p className="text-sm md:text-lg text-neutral-400 mb-6 md:mb-10 tracking-wider font-light">Future market strategy Automation</p>
+                  <div className="mt-auto flex flex-col gap-3 md:gap-6">
                     <div>
-                      <p className="text-xs text-neutral-600 mb-1 uppercase tracking-[0.2em]">Backend</p>
-                      <p className="text-sm text-neutral-300 font-light tracking-wider">Python</p>
+                      <p className="text-[10px] md:text-sm text-neutral-600 mb-1 md:mb-2 uppercase tracking-[0.2em]">Backend</p>
+                      <p className="text-xs md:text-base text-neutral-300 font-light tracking-wider">Python</p>
                     </div>
                     <div>
-                      <p className="text-xs text-neutral-600 mb-1 uppercase tracking-[0.2em]">Frontend</p>
-                      <p className="text-sm text-neutral-300 font-light tracking-wider">Python</p>
+                      <p className="text-[10px] md:text-sm text-neutral-600 mb-1 md:mb-2 uppercase tracking-[0.2em]">Frontend</p>
+                      <p className="text-xs md:text-base text-neutral-300 font-light tracking-wider">Python</p>
                     </div>
                   </div>
                 </div>
@@ -394,19 +406,23 @@ export default function Home() {
               </div>
             </ScrollStackItem>
 
+            {/* PROJECT 4 */}
             <ScrollStackItem>
-              <div className="bg-[#111111] border border-white/10 rounded-2xl h-[50vh] flex overflow-hidden">
-                <div className="flex-1 p-10 flex flex-col justify-center">
-                  <h2 className="text-4xl md:text-5xl font-light mb-2 tracking-widest uppercase">Startup Analyser</h2>
-                  <p className="text-neutral-400 mb-8 tracking-wider font-light">AI startup analyser using RAG system</p>
-                  <div className="mt-auto flex flex-col gap-4">
+              <div className="w-[92vw] md:w-[80vw] max-w-6xl mx-auto bg-[#111111] border border-white/10 rounded-2xl flex flex-col md:flex-row overflow-hidden min-h-[50vh] md:h-[65vh]">
+                <div className="w-full h-40 md:hidden relative border-b border-white/10 shrink-0">
+                  <img src="https://picsum.photos/seed/startup/800/800" alt="Startup" className="w-full h-full object-cover opacity-60 grayscale" />
+                </div>
+                <div className="flex-1 p-6 md:p-12 flex flex-col justify-center">
+                  <h2 className="text-3xl md:text-5xl font-light mb-2 md:mb-4 tracking-widest uppercase">Startup Analyser</h2>
+                  <p className="text-sm md:text-lg text-neutral-400 mb-6 md:mb-10 tracking-wider font-light">AI startup analyser using RAG system</p>
+                  <div className="mt-auto flex flex-col gap-3 md:gap-6">
                     <div>
-                      <p className="text-xs text-neutral-600 mb-1 uppercase tracking-[0.2em]">Backend</p>
-                      <p className="text-sm text-neutral-300 font-light tracking-wider leading-relaxed">Python, Node.js, Express, MongoDB, Redis</p>
+                      <p className="text-[10px] md:text-sm text-neutral-600 mb-1 md:mb-2 uppercase tracking-[0.2em]">Backend</p>
+                      <p className="text-xs md:text-base text-neutral-300 font-light tracking-wider leading-relaxed">Python, Node.js, Express, MongoDB, Redis</p>
                     </div>
                     <div>
-                      <p className="text-xs text-neutral-600 mb-1 uppercase tracking-[0.2em]">Frontend</p>
-                      <p className="text-sm text-neutral-300 font-light tracking-wider">React.js</p>
+                      <p className="text-[10px] md:text-sm text-neutral-600 mb-1 md:mb-2 uppercase tracking-[0.2em]">Frontend</p>
+                      <p className="text-xs md:text-base text-neutral-300 font-light tracking-wider">React.js</p>
                     </div>
                   </div>
                 </div>
@@ -416,19 +432,23 @@ export default function Home() {
               </div>
             </ScrollStackItem>
 
+            {/* PROJECT 5 */}
             <ScrollStackItem>
-              <div className="bg-[#111111] border border-white/10 rounded-2xl h-[50vh] flex overflow-hidden">
-                <div className="flex-1 p-10 flex flex-col justify-center">
-                  <h2 className="text-4xl md:text-5xl font-light mb-2 tracking-widest uppercase">ArMall.pk</h2>
-                  <p className="text-neutral-400 mb-8 tracking-wider font-light">Ecommerce website design</p>
-                  <div className="mt-auto flex flex-col gap-4">
+              <div className="w-[92vw] md:w-[80vw] max-w-6xl mx-auto bg-[#111111] border border-white/10 rounded-2xl flex flex-col md:flex-row overflow-hidden min-h-[50vh] md:h-[65vh]">
+                <div className="w-full h-40 md:hidden relative border-b border-white/10 shrink-0">
+                  <img src="https://picsum.photos/seed/armall/800/800" alt="ArMall" className="w-full h-full object-cover opacity-60 grayscale" />
+                </div>
+                <div className="flex-1 p-6 md:p-12 flex flex-col justify-center">
+                  <h2 className="text-3xl md:text-6xl font-light mb-2 md:mb-4 tracking-widest uppercase">ArMall.pk</h2>
+                  <p className="text-sm md:text-lg text-neutral-400 mb-6 md:mb-10 tracking-wider font-light">Ecommerce website design</p>
+                  <div className="mt-auto flex flex-col gap-3 md:gap-6">
                     <div>
-                      <p className="text-xs text-neutral-600 mb-1 uppercase tracking-[0.2em]">Backend</p>
-                      <p className="text-sm text-neutral-300 font-light tracking-wider leading-relaxed">Next.js, Mongoose, Clerk, MongoDB</p>
+                      <p className="text-[10px] md:text-sm text-neutral-600 mb-1 md:mb-2 uppercase tracking-[0.2em]">Backend</p>
+                      <p className="text-xs md:text-base text-neutral-300 font-light tracking-wider leading-relaxed">Next.js, Mongoose, Clerk, MongoDB</p>
                     </div>
                     <div>
-                      <p className="text-xs text-neutral-600 mb-1 uppercase tracking-[0.2em]">Frontend</p>
-                      <p className="text-sm text-neutral-300 font-light tracking-wider">Next.js, Tailwind</p>
+                      <p className="text-[10px] md:text-sm text-neutral-600 mb-1 md:mb-2 uppercase tracking-[0.2em]">Frontend</p>
+                      <p className="text-xs md:text-base text-neutral-300 font-light tracking-wider">Next.js, Tailwind</p>
                     </div>
                   </div>
                 </div>
@@ -442,17 +462,18 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="relative w-full min-h-[60vh] bg-black text-white z-50 flex flex-col items-center justify-center border-t border-white/5 pb-20 pt-10">
-        <div className="text-center mb-16 text-white/50 tracking-[0.5em] text-sm font-light">
+      <section className="relative w-full min-h-[50vh] bg-black text-white z-50 flex flex-col items-center justify-center border-t border-white/5 pb-20 pt-10 px-4">
+        <div className="text-center mb-10 md:mb-16 text-white/50 tracking-[0.5em] text-xs md:text-sm font-light">
           04 / CONTACT
         </div>
-        <h2 className="text-5xl md:text-8xl font-extralight uppercase tracking-widest text-white/90 hover:text-white transition-colors cursor-pointer text-center px-4">
+        {/* MOBILE FIX: Scaled text down to fit narrow phones */}
+        <h2 className="text-4xl md:text-8xl font-extralight uppercase tracking-widest text-white/90 hover:text-white transition-colors cursor-pointer text-center">
           Let's Talk.
         </h2>
-        <a href="mailto:hello@example.com" className="mt-8 text-neutral-500 hover:text-white transition-colors font-light tracking-widest text-sm uppercase">
+        <a href="mailto:hello@example.com" className="mt-8 text-neutral-500 hover:text-white transition-colors font-light tracking-widest text-xs md:text-sm uppercase text-center break-all">
           hello@yourdomain.com
         </a>
-        <div className="flex gap-10 mt-16 text-xs md:text-sm tracking-widest text-neutral-600 uppercase">
+        <div className="flex flex-wrap justify-center gap-6 md:gap-10 mt-12 md:mt-16 text-xs md:text-sm tracking-widest text-neutral-600 uppercase">
           <a href="#" className="hover:text-white transition-colors">LinkedIn</a>
           <a href="#" className="hover:text-white transition-colors">GitHub</a>
           <a href="#" className="hover:text-white transition-colors">Twitter</a>
