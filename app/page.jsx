@@ -2,17 +2,16 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import { Roboto_Mono } from "next/font/google";
-import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
+// FIXED: Added useInView here
+import { motion, useScroll, useTransform, useMotionValueEvent, useInView } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollStack, { ScrollStackItem } from '../components/ScrollStack';
-
-// --- MAGIC LAZY LOADING IMPORT ---
 import dynamic from "next/dynamic";
 
-// This prevents the server from trying to render 3D, and delays downloading the heavy Three.js bundle!
+// LAZY LOAD THE 3D SCENE
 const DynamicPhysics = dynamic(() => import('../components/PhysicsScene'), {
-  ssr: false, // Server-Side Rendering must be false for Canvas
+  ssr: false, 
 });
 
 const robotoMono = Roboto_Mono({ 
@@ -82,6 +81,10 @@ export default function Home() {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const waveWrapperRef = useRef(null); 
+  
+  // FIXED: Added a ref for the 3D section to track when it enters the screen
+  const physicsContainerRef = useRef(null);
+  const isPhysicsInView = useInView(physicsContainerRef, { once: true, margin: "200px" });
 
   const imagesRef = useRef([]);
   const totalFrames = 192; 
@@ -111,16 +114,34 @@ export default function Home() {
     ctx.drawImage(img, offsetX, offsetY, newWidth, newHeight);
   }, []);
 
+  // FIXED: Staggered Image Loading to prevent browser freezing
   useEffect(() => {
-    const loadedImages = [];
-    for (let i = 1; i <= totalFrames; i++) {
-      const img = new Image();
-      const frameNumber = i.toString().padStart(5, "0");
-      img.src = `/frames/${frameNumber}.webp`;
-      img.onload = () => { if (i === 1) drawImage(img); };
-      loadedImages.push(img);
-    }
+    const loadedImages = new Array(totalFrames).fill(null);
     imagesRef.current = loadedImages;
+
+    const loadFrame = (index) => {
+      const img = new Image();
+      const frameNumber = index.toString().padStart(5, "0");
+      img.src = `/frames/${frameNumber}.png`;
+      if (index === 1) {
+        img.onload = () => drawImage(img);
+      }
+      loadedImages[index - 1] = img;
+    };
+
+    // Instantly load first 10 frames
+    for (let i = 1; i <= 10; i++) {
+      loadFrame(i);
+    }
+
+    // Load the rest in the background after 1 second
+    const timeoutId = setTimeout(() => {
+      for (let i = 11; i <= totalFrames; i++) {
+        setTimeout(() => loadFrame(i), i * 5);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
   }, [drawImage]);
 
   useMotionValueEvent(scrollYProgress, "change", (progress) => {
@@ -136,6 +157,8 @@ export default function Home() {
       currentFrameIndex = 159 + Math.floor(segmentProgress * 32);
     }
     currentFrameIndex = Math.min(totalFrames - 1, Math.max(0, currentFrameIndex));
+    
+    // Safely check if the image has actually loaded yet before drawing
     const img = imagesRef.current[currentFrameIndex];
     if (img && img.complete) drawImage(img);
   });
@@ -312,14 +335,12 @@ export default function Home() {
         </div>
       </main>
 
-      <div className="relative w-full h-200 pt-50 bg-black [-webkit-mask-image:linear-gradient(to_bottom,transparent,black_200px)] [mask-image:linear-gradient(to_bottom,transparent,black_200px)] z-40">
+      {/* FIXED: Attached ref here. The 3D engine only turns on when you scroll to it! */}
+      <div ref={physicsContainerRef} className="relative w-full h-200 pt-50 bg-black [-webkit-mask-image:linear-gradient(to_bottom,transparent,black_200px)] [mask-image:linear-gradient(to_bottom,transparent,black_200px)] z-40">
         <div className="absolute top-20 left-1/2 -translate-x-1/2 text-white/50 tracking-[0.5em] text-sm font-light z-50 pointer-events-none">
           02 / TECH STACK
         </div>
-        
-        {/* LAZY LOADED COMPONENT! */}
-        <DynamicPhysics />
-
+        {isPhysicsInView && <DynamicPhysics />}
       </div>
 
       <section className="relative w-full bg-black text-white z-30 pt-15 pb-32">

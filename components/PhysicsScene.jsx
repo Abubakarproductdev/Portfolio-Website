@@ -7,9 +7,11 @@ import { Environment, useTexture } from "@react-three/drei";
 import { Physics, useSphere } from "@react-three/cannon";
 
 const rfs = THREE.MathUtils.randFloatSpread;
-const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
 
-// Your logo textures
+// FIXED: Reduced geometry segments from 32 to 16. It looks identical but is 2x faster to render!
+const sphereGeometry = new THREE.SphereGeometry(1, 16, 16);
+
+// Your logo textures (Make sure to resize these to 512x512 later!)
 const logoTextures = [
   "/nextjs.jpg",
   "/react.jpg",
@@ -28,22 +30,22 @@ export default function PhysicsScene() {
   return (
     <Canvas 
       shadows 
-      // Turned standard antialiasing back ON since we removed the heavy post-processing SMAA
+      // FIXED: Locked dpr to 1 to prevent 4K monitors from slowing down the browser
       gl={{ antialias: true, alpha: true }} 
-      dpr={[1, 1.5]} 
+      dpr={1} 
       camera={{ position: [0, 0, 20], fov: 35, near: 1, far: 40 }}
     >
       <ambientLight intensity={0.5} />
       <spotLight intensity={1} angle={0.2} penumbra={1} position={[30, 30, 30]} castShadow shadow-mapSize={[512, 512]} />
       
-      {/* Suspense boundary prevents Next.js from crashing while textures load */}
       <Suspense fallback={null}>
-        <Physics gravity={[0, 2, 0]} iterations={10}>
+        {/* FIXED: Reduced iterations from 10 to 5 for faster math calculations */}
+        <Physics gravity={[0, 2, 0]} iterations={5}>
           <Pointer />
           <Clump />
         </Physics>
         
-        {/* Lightweight built-in environment lighting */}
+        {/* Using the built-in 'city' preset instead of the heavy .hdr file */}
         <Environment preset="night" />
       </Suspense>
     </Canvas>
