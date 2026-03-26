@@ -122,7 +122,7 @@ export default function Home() {
     const loadFrame = (index) => {
       const img = new Image();
       const frameNumber = index.toString().padStart(5, "0");
-      img.src = `/frames/${frameNumber}.webp`;
+      img.src = `/frames/${frameNumber}_compressed.webp`;
       if (index === 1) {
         img.onload = () => drawImage(img);
       }
