@@ -7,12 +7,13 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollStack, { ScrollStackItem } from '../components/ScrollStack';
 
-// --- THREE JS IMPORTS ---
-import * as THREE from "three";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, useTexture } from "@react-three/drei";
-import { Physics, useSphere } from "@react-three/cannon";
-import { EffectComposer, N8AO, SMAA, Bloom } from "@react-three/postprocessing";
+// --- MAGIC LAZY LOADING IMPORT ---
+import dynamic from "next/dynamic";
+
+// This prevents the server from trying to render 3D, and delays downloading the heavy Three.js bundle!
+const DynamicPhysics = dynamic(() => import('../components/PhysicsScene'), {
+  ssr: false, // Server-Side Rendering must be false for Canvas
+});
 
 const robotoMono = Roboto_Mono({ 
   subsets: ["latin"], 
@@ -115,7 +116,7 @@ export default function Home() {
     for (let i = 1; i <= totalFrames; i++) {
       const img = new Image();
       const frameNumber = i.toString().padStart(5, "0");
-      img.src = `/frames/${frameNumber}.png`;
+      img.src = `/frames/${frameNumber}.webp`;
       img.onload = () => { if (i === 1) drawImage(img); };
       loadedImages.push(img);
     }
@@ -149,7 +150,6 @@ export default function Home() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [drawImage, scrollYProgress]);
-
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -290,13 +290,11 @@ export default function Home() {
       </div>
 
       <main ref={containerRef} className="relative w-full z-10 flex flex-col justify-center overflow-hidden pt-[200vh] pb-[10vh]">
-        {/* HEADING 1 */}
         <div className="sticky top-20 w-full text-center text-white/50 tracking-[0.5em] text-sm font-light z-[200] pointer-events-none mb-10">
           01 / BIO
         </div>
 
         <div ref={waveWrapperRef} className="dual-wave-wrapper flex w-full relative gap-[10vw] px-[10vw]">
-          {/* UPDATED: Increased clamp text size slightly from clamp(0.875rem...) to clamp(1.2rem, 2.5vw, 2rem) */}
           <div className="wave-column wave-column-left flex-1 flex flex-col items-start gap-[1vh] text-[clamp(1.2rem,2.5vw,2rem)] font-light leading-none relative z-[100]">
             {bioContent.map((line, i) => (
               <div key={`l-${i}`} className="animated-text w-max origin-left uppercase text-[#4d4d4d] opacity-40">
@@ -314,16 +312,17 @@ export default function Home() {
         </div>
       </main>
 
-      <div className="relative w-full h-screen bg-black [-webkit-mask-image:linear-gradient(to_bottom,transparent,black_200px)] [mask-image:linear-gradient(to_bottom,transparent,black_200px)] z-40">
-        {/* HEADING 2 */}
+      <div className="relative w-full h-200 pt-50 bg-black [-webkit-mask-image:linear-gradient(to_bottom,transparent,black_200px)] [mask-image:linear-gradient(to_bottom,transparent,black_200px)] z-40">
         <div className="absolute top-20 left-1/2 -translate-x-1/2 text-white/50 tracking-[0.5em] text-sm font-light z-50 pointer-events-none">
           02 / TECH STACK
         </div>
-        <ThreePhysicsScene />
+        
+        {/* LAZY LOADED COMPONENT! */}
+        <DynamicPhysics />
+
       </div>
 
       <section className="relative w-full bg-black text-white z-30 pt-15 pb-32">
-        {/* HEADING 3 */}
         <div className="text-center mb-16 text-white/50 tracking-[0.5em] text-sm font-light">
           03 / PROJECTS
         </div>
@@ -331,7 +330,6 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4">
           <ScrollStack useWindowScroll={true}>
             
-            {/* PROJECT 1 */}
             <ScrollStackItem>
               <div className="bg-[#111111] border border-white/10 rounded-2xl h-[50vh] flex overflow-hidden">
                 <div className="flex-1 p-10 flex flex-col justify-center">
@@ -354,7 +352,6 @@ export default function Home() {
               </div>
             </ScrollStackItem>
 
-            {/* PROJECT 2 */}
             <ScrollStackItem>
               <div className="bg-[#111111] border border-white/10 rounded-2xl h-[50vh] flex overflow-hidden">
                 <div className="flex-1 p-10 flex flex-col justify-center">
@@ -363,7 +360,7 @@ export default function Home() {
                   <div className="mt-auto flex flex-col gap-4">
                     <div>
                       <p className="text-xs text-neutral-600 mb-1 uppercase tracking-[0.2em]">Backend</p>
-                      <p className="text-sm text-neutral-300 font-light tracking-wider leading-relaxed">Python (AI agents), Langgraph, Node.js, MongoDB, Mongoose</p>
+                      <p className="text-sm text-neutral-300 font-light tracking-wider leading-relaxed">Python (AI agents), Langgraph, Node.js, MongoDB</p>
                     </div>
                     <div>
                       <p className="text-xs text-neutral-600 mb-1 uppercase tracking-[0.2em]">Frontend</p>
@@ -377,7 +374,6 @@ export default function Home() {
               </div>
             </ScrollStackItem>
 
-            {/* PROJECT 3 */}
             <ScrollStackItem>
               <div className="bg-[#111111] border border-white/10 rounded-2xl h-[50vh] flex overflow-hidden">
                 <div className="flex-1 p-10 flex flex-col justify-center">
@@ -400,7 +396,6 @@ export default function Home() {
               </div>
             </ScrollStackItem>
 
-            {/* PROJECT 4 */}
             <ScrollStackItem>
               <div className="bg-[#111111] border border-white/10 rounded-2xl h-[50vh] flex overflow-hidden">
                 <div className="flex-1 p-10 flex flex-col justify-center">
@@ -409,7 +404,7 @@ export default function Home() {
                   <div className="mt-auto flex flex-col gap-4">
                     <div>
                       <p className="text-xs text-neutral-600 mb-1 uppercase tracking-[0.2em]">Backend</p>
-                      <p className="text-sm text-neutral-300 font-light tracking-wider leading-relaxed">Python, Node.js, Express, MongoDB, Mongoose, Redis</p>
+                      <p className="text-sm text-neutral-300 font-light tracking-wider leading-relaxed">Python, Node.js, Express, MongoDB, Redis</p>
                     </div>
                     <div>
                       <p className="text-xs text-neutral-600 mb-1 uppercase tracking-[0.2em]">Frontend</p>
@@ -423,7 +418,6 @@ export default function Home() {
               </div>
             </ScrollStackItem>
 
-            {/* PROJECT 5 */}
             <ScrollStackItem>
               <div className="bg-[#111111] border border-white/10 rounded-2xl h-[50vh] flex overflow-hidden">
                 <div className="flex-1 p-10 flex flex-col justify-center">
@@ -450,7 +444,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* NEW CONTACT SECTION */}
       <section className="relative w-full min-h-[60vh] bg-black text-white z-50 flex flex-col items-center justify-center border-t border-white/5 pb-20 pt-10">
         <div className="text-center mb-16 text-white/50 tracking-[0.5em] text-sm font-light">
           04 / CONTACT
@@ -470,101 +463,4 @@ export default function Home() {
 
     </div>
   );
-}
-
-
-/* ========================================================================= 
-   THREE.JS PHYSICS COMPONENTS
-   ========================================================================= */
-
-const rfs = THREE.MathUtils.randFloatSpread;
-const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
-
-const logoTextures = [
-  "/nextjs.jpg",
-  "/react.jpg",
-  "/python.jpg",
-  "/javascript.jpg",
-  "/html.png",
-  "/tailwind.jpg",
-  "/nodejs.jpg",
-  "/expressjs.jpg",
-  "/mongodb.jpg",
-];
-
-const baubleVec = new THREE.Vector3();
-
-function ThreePhysicsScene() {
-  return (
-    <Canvas shadows gl={{ antialias: false, alpha: true }} dpr={[1, 1.5]} camera={{ position: [0, 0, 20], fov: 35, near: 1, far: 40 }}>
-      <ambientLight intensity={0.5} />
-      <spotLight intensity={1} angle={0.2} penumbra={1} position={[30, 30, 30]} castShadow shadow-mapSize={[512, 512]} />
-      
-      <Physics gravity={[0, 2, 0]} iterations={10}>
-        <Pointer />
-        <Clump />
-      </Physics>
-      
-      <Environment files="/adamsbridge.hdr" />
-      <EffectComposer disableNormalPass multisampling={0}>
-        <N8AO halfRes color="black" aoRadius={2} intensity={1} aoSamples={6} denoiseSamples={4} />
-        <Bloom mipmapBlur levels={7} intensity={1} />
-        <SMAA />
-      </EffectComposer>
-    </Canvas>
-  );
-}
-
-function Clump() {
-  const textures = useTexture(logoTextures);
-
-  return (
-    <>
-      {Array.from({ length: 40 }).map((_, i) => (
-        <Bauble key={i} texture={textures[i % textures.length]} />
-      ))}
-    </>
-  );
-}
-
-function Bauble({ texture }) {
-  const [ref, api] = useSphere(() => ({
-    args: [1],
-    mass: 1,
-    angularDamping: 0.1,
-    linearDamping: 0.65,
-    position: [rfs(20), rfs(20), rfs(20)]
-  }));
-
-  const pos = useRef([0, 0, 0]);
-  useEffect(() => {
-    const unsubscribe = api.position.subscribe((v) => (pos.current = v));
-    return unsubscribe;
-  }, [api]);
-
-  useFrame(() => {
-    baubleVec.set(...pos.current).normalize().multiplyScalar(-40);
-    api.applyForce(baubleVec.toArray(), [0, 0, 0]);
-  });
-
-  return (
-    <mesh ref={ref} castShadow receiveShadow geometry={sphereGeometry}>
-      <meshStandardMaterial 
-        color="white" 
-        roughness={0} 
-        envMapIntensity={1} 
-        map={texture} 
-        transparent={true} 
-      />
-    </mesh>
-  );
-}
-
-function Pointer() {
-  const viewport = useThree((state) => state.viewport);
-  const [ref, api] = useSphere(() => ({ type: "Kinematic", args: [3], position: [0, 0, 0] }));
-  
-  useFrame((state) => api.position.set((state.mouse.x * viewport.width) / 2, (state.mouse.y * viewport.height) / 2, 0));
-  
-  return <mesh ref={ref} visible={false} />;
 }
