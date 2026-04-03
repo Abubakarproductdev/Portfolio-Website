@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { Roboto_Mono } from "next/font/google";
-import { motion, useScroll, useTransform, useMotionValueEvent, useInView } from "framer-motion";
+import { motion, useScroll, useTransform, useMotionValueEvent, useInView, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollStack, { ScrollStackItem } from '../components/ScrollStack';
@@ -53,12 +53,13 @@ const bioContent = [
 ];
 
 export default function Home() {
+  const [isLoading, setIsLoading] = useState(true);
+
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const waveWrapperRef = useRef(null);
 
   const physicsContainerRef = useRef(null);
-  const isPhysicsInView = useInView(physicsContainerRef, { once: true, margin: "200px" });
 
   const imagesRef = useRef([]);
   const totalFrames = 192;
@@ -89,30 +90,70 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
+    let imagesLoadedCount = 0;
+    let isWindowLoaded = document.readyState === 'complete';
+
     const loadedImages = new Array(totalFrames).fill(null);
     imagesRef.current = loadedImages;
+
+    const checkAllLoaded = () => {
+      // Wait for all 192 images to load AND the window entirely initialized
+      if (imagesLoadedCount >= totalFrames && isWindowLoaded && isMounted) {
+        setTimeout(() => {
+          if (isMounted) {
+            setIsLoading(false);
+            window.scrollTo(0, 0);
+          }
+        }, 1500); // Small aesthetic display time once all loaded
+      }
+    };
+
+    if (!isWindowLoaded) {
+      window.addEventListener('load', () => {
+        isWindowLoaded = true;
+        checkAllLoaded();
+      }, { once: true });
+    }
 
     const loadFrame = (index) => {
       const img = new Image();
       const frameNumber = index.toString().padStart(5, "0");
-      img.src = `/frames/${frameNumber}_compressed.webp`;
-      if (index === 1) {
-        img.onload = () => drawImage(img);
-      }
+      
+      const onImageReady = () => {
+        imagesLoadedCount++;
+        if (index === 1) {
+          drawImage(img);
+        }
+        checkAllLoaded();
+      };
+
+      img.onload = onImageReady;
+      img.onerror = onImageReady; // Count as loaded on error to prevent infinite stalls
+      img.src = `/frames/${frameNumber}.webp`;
+      
       loadedImages[index - 1] = img;
     };
 
-    for (let i = 1; i <= 10; i++) {
-      loadFrame(i);
+    // Load ALL framework resources IMMEDIATELY
+    for (let i = 1; i <= totalFrames; i++) {
+        loadFrame(i);
     }
-
-    const timeoutId = setTimeout(() => {
-      for (let i = 11; i <= totalFrames; i++) {
-        setTimeout(() => loadFrame(i), i * 5);
+    
+    // Safety fallback in case network issues take >15 seconds
+    const fallbackInfo = setTimeout(() => {
+      if (isMounted) {
+         setIsLoading(false);
+         // Fallback shouldn't brutally reset scroll just in case
       }
-    }, 1000);
+    }, 15000); 
 
-    return () => clearTimeout(timeoutId);
+    checkAllLoaded();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(fallbackInfo);
+    };
   }, [drawImage]);
 
   useMotionValueEvent(scrollYProgress, "change", (progress) => {
@@ -264,7 +305,47 @@ export default function Home() {
   const glassOpacity = useTransform(scrollYProgress, [0, 0.8, 1], [0, 0, 1]);
 
   return (
-    <div className={`bg-black min-h-screen ${robotoMono.className} overflow-x-hidden`}>
+    <div className={`bg-black min-h-screen ${robotoMono.className} overflow-x-hidden ${isLoading ? "h-screen w-screen overflow-hidden fixed" : ""}`}>
+      
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, filter: "blur(10px)" }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#050505]"
+          >
+            <div className="relative flex items-center justify-center">
+              {/* Outer rotating thin ring */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                className="w-40 h-40 md:w-56 md:h-56 rounded-full border-[1px] border-white/10 border-t-white/80 absolute"
+              />
+              {/* Inner reverse rotating dashed ring */}
+              <motion.div
+                animate={{ rotate: -360 }}
+                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                className="w-32 h-32 md:w-48 md:h-48 rounded-full border-[1px] border-white/5 border-b-white/30 border-r-white/30 absolute"
+              />
+              {/* Center pulsing core */}
+              <motion.div
+                animate={{ scale: [0.9, 1.1, 0.9], opacity: [0.3, 0.8, 0.3] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-white absolute"
+              />
+            </div>
+            {/* Loading text */}
+            <motion.div 
+              animate={{ opacity: [0.3, 1, 0.3] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              className="mt-12 text-white/60 tracking-[0.5em] text-xs md:text-sm font-light uppercase"
+            >
+              Loading
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="fixed top-0 left-0 w-full h-screen overflow-hidden z-0 pointer-events-none">
         <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full object-cover z-0" />
@@ -313,20 +394,20 @@ export default function Home() {
         <div className="absolute top-10 md:top-20 left-1/2 -translate-x-1/2 text-white/50 tracking-[0.5em] text-xs md:text-sm font-light z-50 pointer-events-none w-full text-center">
           02 / TECH STACK
         </div>
-        {isPhysicsInView && <DynamicPhysics />}
+        <DynamicPhysics />
       </div>
 
 
-          {/* ---------------- PROJECTS SECTION ---------------- */}
+      {/* ---------------- PROJECTS SECTION ---------------- */}
       <section className="relative w-full bg-black text-white z-30 pt-10 md:pt-15 pb-32 flex flex-col items-center">
         <div className="text-center mb-10 md:mb-16 text-white/50 tracking-[0.5em] text-xs md:text-sm font-light w-full">
           03 / PROJECTS
         </div>
-        
+
         {/* Removed width constraints from wrapper, letting the cards define their own width */}
         <div className="w-full flex justify-center">
           <ScrollStack useWindowScroll={true}>
-            
+
             {/* PROJECT 1 */}
             <ScrollStackItem>
               {/* FIXED: Explicitly forced viewport width (vw) DIRECTLY on the card so it cannot shrink */}
