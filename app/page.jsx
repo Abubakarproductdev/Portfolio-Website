@@ -6,12 +6,8 @@ import { motion, useScroll, useTransform, useMotionValueEvent, AnimatePresence }
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollStack, { ScrollStackItem } from "../components/ScrollStack";
-import dynamic from "next/dynamic";
-import { FRAME_COUNT, PHYSICS_ENVIRONMENT, PHYSICS_TEXTURES, getFrameSrc } from "../lib/homePreload";
-
-const DynamicPhysics = dynamic(() => import("../components/PhysicsScene"), {
-  ssr: false,
-});
+import PhysicsScene from "../components/PhysicsScene";
+import { FRAME_COUNT, getFrameSrc } from "../lib/homePreload";
 
 const robotoMono = Roboto_Mono({
   subsets: ["latin"],
@@ -56,14 +52,17 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [isImagesLoaded, setIsImagesLoaded] = useState(false);
   const [isPhysicsLoaded, setIsPhysicsLoaded] = useState(false);
-  const [isWindowLoaded, setIsWindowLoaded] = useState(false);
-  const [shouldRenderPhysics, setShouldRenderPhysics] = useState(false);
+  const [isWindowLoaded, setIsWindowLoaded] = useState(() => typeof document !== "undefined" && document.readyState === "complete");
 
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const waveWrapperRef = useRef(null);
   const physicsContainerRef = useRef(null);
   const imagesRef = useRef([]);
+  const canvasMetricsRef = useRef({ width: 0, height: 0 });
+  const currentFrameIndexRef = useRef(0);
+  const pendingFrameSourceRef = useRef(null);
+  const drawRafRef = useRef(null);
 
   const preloadImage = useCallback((src) => {
     if (typeof window === "undefined") {
@@ -90,22 +89,30 @@ export default function Home() {
     });
   }, []);
 
-  const preloadFile = useCallback(async (src) => {
-    if (typeof window === "undefined") {
-      return false;
-    }
+  const resizeCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || typeof window === "undefined") return;
 
-    try {
-      const response = await fetch(src, { cache: "force-cache" });
-      if (!response.ok) {
-        return false;
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    const cssWidth = Math.max(1, Math.floor(window.innerWidth));
+    const cssHeight = Math.max(1, Math.floor(window.innerHeight));
+    const pixelWidth = Math.max(1, Math.floor(cssWidth * dpr));
+    const pixelHeight = Math.max(1, Math.floor(cssHeight * dpr));
+
+    if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+      canvas.width = pixelWidth;
+      canvas.height = pixelHeight;
+
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
-
-      await response.blob();
-      return true;
-    } catch {
-      return false;
     }
+
+    canvasMetricsRef.current = {
+      width: cssWidth,
+      height: cssHeight,
+    };
   }, []);
 
   useEffect(() => {
@@ -133,28 +140,46 @@ export default function Home() {
     const canvas = canvasRef.current;
     if (!canvas || !img || typeof window === "undefined") return;
 
+    if (!canvasMetricsRef.current.width || !canvasMetricsRef.current.height) {
+      resizeCanvas();
+    }
+
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const { width, height } = canvasMetricsRef.current;
 
-    const ratio = Math.max(canvas.width / img.width, canvas.height / img.height);
+    const ratio = Math.max(width / img.width, height / img.height);
     const newWidth = img.width * ratio;
     const newHeight = img.height * ratio;
-    const offsetX = (canvas.width - newWidth) / 2;
-    const offsetY = (canvas.height - newHeight) / 2;
+    const offsetX = (width - newWidth) / 2;
+    const offsetY = (height - newHeight) / 2;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, width, height);
     ctx.drawImage(img, offsetX, offsetY, newWidth, newHeight);
-  }, []);
+  }, [resizeCanvas]);
+
+  const queueFrameDraw = useCallback((img) => {
+    if (!img || typeof window === "undefined") return;
+
+    pendingFrameSourceRef.current = img;
+
+    if (drawRafRef.current) {
+      return;
+    }
+
+    drawRafRef.current = window.requestAnimationFrame(() => {
+      drawRafRef.current = null;
+      drawImage(pendingFrameSourceRef.current);
+    });
+  }, [drawImage]);
 
   useEffect(() => {
     if (isImagesLoaded && isPhysicsLoaded && isWindowLoaded) {
       const timer = setTimeout(() => {
         setIsLoading(false);
         window.scrollTo(0, 0);
-      }, 1500);
+      }, 350);
 
       return () => clearTimeout(timer);
     }
@@ -163,9 +188,7 @@ export default function Home() {
   useEffect(() => {
     let cleanupLoadListener = null;
 
-    if (document.readyState === "complete") {
-      setIsWindowLoaded(true);
-    } else {
+    if (!isWindowLoaded) {
       const handleLoad = () => setIsWindowLoaded(true);
       window.addEventListener("load", handleLoad, { once: true });
       cleanupLoadListener = () => window.removeEventListener("load", handleLoad);
@@ -179,45 +202,7 @@ export default function Home() {
       cleanupLoadListener?.();
       clearTimeout(fallbackInfo);
     };
-  }, []);
-
-  useEffect(() => {
-    let isCancelled = false;
-    let physicsFallbackTimer = null;
-
-    const preloadPhysicsScene = async () => {
-      try {
-        await import("../components/PhysicsScene");
-        await Promise.all([
-          ...PHYSICS_TEXTURES.map((src) => preloadImage(src)),
-          preloadFile(PHYSICS_ENVIRONMENT),
-        ]);
-      } finally {
-        if (isCancelled) {
-          return;
-        }
-
-        setShouldRenderPhysics(true);
-        physicsFallbackTimer = window.setTimeout(() => {
-          setIsPhysicsLoaded(true);
-        }, 2500);
-      }
-    };
-
-    preloadPhysicsScene().catch(() => {
-      if (!isCancelled) {
-        setShouldRenderPhysics(true);
-        setIsPhysicsLoaded(true);
-      }
-    });
-
-    return () => {
-      isCancelled = true;
-      if (physicsFallbackTimer) {
-        window.clearTimeout(physicsFallbackTimer);
-      }
-    };
-  }, [preloadFile, preloadImage]);
+  }, [isWindowLoaded]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -238,11 +223,12 @@ export default function Home() {
     const preloadFrames = async () => {
       const firstFrame = await loadFrame(1);
       if (firstFrame) {
-        drawImage(firstFrame);
+        currentFrameIndexRef.current = 0;
+        queueFrameDraw(firstFrame);
       }
 
       let nextFrameIndex = 2;
-      const workers = Array.from({ length: 10 }, async () => {
+      const workers = Array.from({ length: 6 }, async () => {
         while (!isCancelled && nextFrameIndex <= FRAME_COUNT) {
           const frameIndex = nextFrameIndex;
           nextFrameIndex += 1;
@@ -266,7 +252,7 @@ export default function Home() {
     return () => {
       isCancelled = true;
     };
-  }, [drawImage, preloadImage]);
+  }, [preloadImage, queueFrameDraw]);
 
   useMotionValueEvent(scrollYProgress, "change", (progress) => {
     let currentFrameIndex = 0;
@@ -283,22 +269,40 @@ export default function Home() {
     }
 
     currentFrameIndex = Math.min(FRAME_COUNT - 1, Math.max(0, currentFrameIndex));
+    currentFrameIndexRef.current = currentFrameIndex;
 
     const img = imagesRef.current[currentFrameIndex];
-    if (img && img.complete) drawImage(img);
+    if (img && img.complete) queueFrameDraw(img);
   });
 
   useEffect(() => {
     const handleResize = () => {
-      const progress = scrollYProgress.get();
-      const currentIndex = Math.floor(progress * (FRAME_COUNT - 1));
-      const img = imagesRef.current[currentIndex];
-      if (img && img.complete) drawImage(img);
+      resizeCanvas();
+
+      const img = imagesRef.current[currentFrameIndexRef.current];
+      if (img && img.complete) {
+        queueFrameDraw(img);
+      }
     };
 
+    handleResize();
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [drawImage, scrollYProgress]);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      if (drawRafRef.current) {
+        window.cancelAnimationFrame(drawRafRef.current);
+        drawRafRef.current = null;
+      }
+    };
+  }, [queueFrameDraw, resizeCanvas]);
+
+  useEffect(() => {
+    if (!isLoading && typeof window !== "undefined") {
+      window.requestAnimationFrame(() => {
+        ScrollTrigger.refresh();
+      });
+    }
+  }, [isLoading]);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -498,7 +502,7 @@ export default function Home() {
         <div className="pointer-events-none absolute left-1/2 top-10 z-50 w-full -translate-x-1/2 text-center text-xs font-light tracking-[0.5em] text-white/50 md:top-20 md:text-sm">
           02 / TECH STACK
         </div>
-        {shouldRenderPhysics ? <DynamicPhysics onLoaded={() => setIsPhysicsLoaded(true)} /> : null}
+        <PhysicsScene onLoaded={() => setIsPhysicsLoaded(true)} />
       </div>
 
       <section className="relative z-30 flex w-full flex-col items-center bg-black pt-10 pb-32 text-white md:pt-15">
@@ -655,4 +659,3 @@ export default function Home() {
     </div>
   );
 }
-
