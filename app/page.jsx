@@ -54,6 +54,9 @@ const bioContent = [
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
+  const [isImagesLoaded, setIsImagesLoaded] = useState(false);
+  const [isPhysicsLoaded, setIsPhysicsLoaded] = useState(false);
+  const [isWindowLoaded, setIsWindowLoaded] = useState(false);
 
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
@@ -89,71 +92,62 @@ export default function Home() {
     ctx.drawImage(img, offsetX, offsetY, newWidth, newHeight);
   }, []);
 
+  // 1) MASTER LOADER TRIGGER
   useEffect(() => {
-    let isMounted = true;
-    let imagesLoadedCount = 0;
-    let isWindowLoaded = document.readyState === 'complete';
+    if (isImagesLoaded && isPhysicsLoaded && isWindowLoaded) {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+        window.scrollTo(0, 0);
+      }, 1500); // 1.5s aesthetic delay before revealing site
+      return () => clearTimeout(timer);
+    }
+  }, [isImagesLoaded, isPhysicsLoaded, isWindowLoaded]);
 
+  // 2) WINDOW LOAD TRACKER
+  useEffect(() => {
+    if (document.readyState === 'complete') {
+      setIsWindowLoaded(true);
+    } else {
+      window.addEventListener('load', () => setIsWindowLoaded(true), { once: true });
+    }
+
+    // Safety fallback: Release loader after 15s absolute maximum to prevent lockouts
+    const fallbackInfo = setTimeout(() => {
+      setIsLoading(false);
+    }, 15000);
+
+    return () => clearTimeout(fallbackInfo);
+  }, []);
+
+  // 3) IMAGE SEQUENCE LOADER
+  useEffect(() => {
+    let imagesLoadedCount = 0;
     const loadedImages = new Array(totalFrames).fill(null);
     imagesRef.current = loadedImages;
 
-    const checkAllLoaded = () => {
-      // Wait for all 192 images to load AND the window entirely initialized
-      if (imagesLoadedCount >= totalFrames && isWindowLoaded && isMounted) {
-        setTimeout(() => {
-          if (isMounted) {
-            setIsLoading(false);
-            window.scrollTo(0, 0);
-          }
-        }, 1500); // Small aesthetic display time once all loaded
+    const onImageReady = (index, img) => {
+      imagesLoadedCount++;
+      if (index === 1) drawImage(img);
+      if (imagesLoadedCount >= totalFrames) {
+        setIsImagesLoaded(true);
       }
     };
-
-    if (!isWindowLoaded) {
-      window.addEventListener('load', () => {
-        isWindowLoaded = true;
-        checkAllLoaded();
-      }, { once: true });
-    }
 
     const loadFrame = (index) => {
       const img = new Image();
       const frameNumber = index.toString().padStart(5, "0");
-      
-      const onImageReady = () => {
-        imagesLoadedCount++;
-        if (index === 1) {
-          drawImage(img);
-        }
-        checkAllLoaded();
-      };
 
-      img.onload = onImageReady;
-      img.onerror = onImageReady; // Count as loaded on error to prevent infinite stalls
+      img.onload = () => onImageReady(index, img);
+      img.onerror = () => onImageReady(index, img); // Count as loaded to skip broken images
       img.src = `/frames/${frameNumber}.webp`;
-      
+
       loadedImages[index - 1] = img;
     };
 
-    // Load ALL framework resources IMMEDIATELY
+    // Load EVERYTHING immediately without throttling
     for (let i = 1; i <= totalFrames; i++) {
-        loadFrame(i);
+      loadFrame(i);
     }
-    
-    // Safety fallback in case network issues take >15 seconds
-    const fallbackInfo = setTimeout(() => {
-      if (isMounted) {
-         setIsLoading(false);
-         // Fallback shouldn't brutally reset scroll just in case
-      }
-    }, 15000); 
-
-    checkAllLoaded();
-
-    return () => {
-      isMounted = false;
-      clearTimeout(fallbackInfo);
-    };
   }, [drawImage]);
 
   useMotionValueEvent(scrollYProgress, "change", (progress) => {
@@ -306,7 +300,7 @@ export default function Home() {
 
   return (
     <div className={`bg-black min-h-screen ${robotoMono.className} overflow-x-hidden ${isLoading ? "h-screen w-screen overflow-hidden fixed" : ""}`}>
-      
+
       <AnimatePresence>
         {isLoading && (
           <motion.div
@@ -336,7 +330,7 @@ export default function Home() {
               />
             </div>
             {/* Loading text */}
-            <motion.div 
+            <motion.div
               animate={{ opacity: [0.3, 1, 0.3] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               className="mt-12 text-white/60 tracking-[0.5em] text-xs md:text-sm font-light uppercase"
@@ -394,7 +388,7 @@ export default function Home() {
         <div className="absolute top-10 md:top-20 left-1/2 -translate-x-1/2 text-white/50 tracking-[0.5em] text-xs md:text-sm font-light z-50 pointer-events-none w-full text-center">
           02 / TECH STACK
         </div>
-        <DynamicPhysics />
+        <DynamicPhysics onLoaded={() => setIsPhysicsLoaded(true)} />
       </div>
 
 

@@ -26,7 +26,7 @@ const logoTextures = [
 
 const baubleVec = new THREE.Vector3();
 
-export default function PhysicsScene() {
+export default function PhysicsScene({ onLoaded }) {
   // Check if it's a mobile screen (less than 768px wide)
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
@@ -44,7 +44,7 @@ export default function PhysicsScene() {
       <Suspense fallback={null}>
         <Physics gravity={[0, 2, 0]} iterations={5}>
           <Pointer />
-          <Clump />
+          <Clump onLoaded={onLoaded} />
         </Physics>
         
         <Environment preset="city" />
@@ -53,8 +53,15 @@ export default function PhysicsScene() {
   );
 }
 
-function Clump() {
+function Clump({ onLoaded }) {
   const textures = useTexture(logoTextures);
+
+  useEffect(() => {
+    if (onLoaded) {
+      // Fire callback once the component has successfully populated textures and mounted
+      onLoaded();
+    }
+  }, []); // Run exactly once on mount
 
   return (
     <>
