@@ -67,6 +67,20 @@ export default function Home() {
   const imagesRef = useRef([]);
   const totalFrames = 192;
 
+  // Scroll Lock mechanism
+  useEffect(() => {
+    if (isLoading) {
+      document.body.style.overflow = 'hidden';
+      // Force top so scroll position doesn't act weird while locked
+      window.scrollTo(0, 0);
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isLoading]);
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"]
@@ -299,8 +313,8 @@ export default function Home() {
   const glassOpacity = useTransform(scrollYProgress, [0, 0.8, 1], [0, 0, 1]);
 
   return (
-    <div className={`bg-black min-h-screen ${robotoMono.className} overflow-x-hidden ${isLoading ? "h-screen w-screen overflow-hidden fixed" : ""}`}>
-
+    <div className={`bg-black min-h-screen ${robotoMono.className} overflow-x-hidden`}>
+      
       <AnimatePresence>
         {isLoading && (
           <motion.div
