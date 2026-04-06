@@ -208,7 +208,7 @@ export default function PortfolioPage() {
               </div>
               <div>
                 <p className="mb-2 text-[10px] uppercase tracking-[0.2em] text-neutral-600">Source Code</p>
-                <a href={data.github || "https://github.com"} target="_blank" rel="noopener noreferrer" className="text-sm font-light tracking-wider text-neutral-300 hover:text-white underline underline-offset-4 decoration-white/30 transition-colors">
+                <a href={data.github || "https://github.com/Abubakarproductdev/Agrimind--AI-farmers-resource-allocator"} target="_blank" rel="noopener noreferrer" className="text-sm font-light tracking-wider text-neutral-300 hover:text-white underline underline-offset-4 decoration-white/30 transition-colors">
                   View on GitHub
                 </a>
               </div>
