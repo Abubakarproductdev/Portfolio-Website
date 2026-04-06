@@ -641,22 +641,28 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="relative z-50 flex min-h-[50vh] w-full flex-col items-center justify-center border-t border-white/5 bg-black px-4 pt-10 pb-20 text-white">
+      <section className="relative z-[9999] flex min-h-[50vh] w-full flex-col items-center justify-center border-t border-white/5 bg-black px-4 pt-10 pb-20 text-white">
         <div className="mb-10 text-center text-xs font-light tracking-[0.5em] text-white/50 md:mb-16 md:text-sm">
           04 / CONTACT
         </div>
+
         <h2 className="cursor-pointer text-center text-4xl font-extralight uppercase tracking-widest text-white/90 transition-colors hover:text-white md:text-8xl">
           Let&apos;s Talk.
         </h2>
-        <a href={`mailto:${Email}`} className="mt-8 break-all text-center text-xs font-light uppercase tracking-widest text-neutral-500 transition-colors hover:text-white md:text-sm">
-          {Email}
+
+        <a
+          href={`mailto:${"sshaiy2255@gmail.com"}`}
+          className="mt-8 break-all text-center text-xs font-light uppercase tracking-widest text-white/60 transition-colors hover:text-white md:text-sm"
+        >
+          sshaiy2255@gmail.com
         </a>
-        <div className="mt-12 flex flex-wrap justify-center gap-6 text-xs uppercase tracking-widest text-neutral-600 md:mt-16 md:gap-10 md:text-sm">
+
+        <div className="mt-12 flex flex-wrap justify-center gap-6 text-xs uppercase tracking-widest text-white/60 md:mt-16 md:gap-10 md:text-sm">
           <a
             href="https://www.linkedin.com/in/muhammad-abubakar-industrial-designer/"
             target="_blank"
             rel="noopener noreferrer"
-            className="transition-colors hover:text-white"
+            className="cursor-pointer transition-colors hover:text-white"
           >
             LinkedIn
           </a>
@@ -665,7 +671,7 @@ export default function Home() {
             href="https://github.com/Abubakarproductdev"
             target="_blank"
             rel="noopener noreferrer"
-            className="transition-colors hover:text-white"
+            className="cursor-pointer transition-colors hover:text-white"
           >
             GitHub
           </a>
