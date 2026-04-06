@@ -8,6 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ScrollStack, { ScrollStackItem } from "../components/ScrollStack";
 import PhysicsScene from "../components/PhysicsScene";
 import { FRAME_COUNT, getFrameSrc } from "../lib/homePreload";
+import Link from "next/link";
 
 const robotoMono = Roboto_Mono({
   subsets: ["latin"],
@@ -513,12 +514,12 @@ export default function Home() {
         <div className="flex w-full justify-center">
           <ScrollStack useWindowScroll={true}>
             <ScrollStackItem>
-              <div className="mx-auto flex min-h-[50vh] w-[92vw] max-w-6xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#111111] md:h-[65vh] md:w-[80vw] md:flex-row">
+              <Link href="/portfolio/sivo" className="group cursor-pointer mx-auto flex min-h-[50vh] w-[92vw] max-w-6xl flex-col overflow-hidden rounded-2xl border border-transparent hover:border-white/20 transition-all duration-700 bg-[#111111] md:h-[65vh] md:w-[80vw] md:flex-row">
                 <div className="relative h-40 w-full shrink-0 border-b border-white/10 md:hidden">
-                  <img src="https://picsum.photos/seed/sivo/800/800" alt="SIVO" className="h-full w-full object-cover opacity-60 grayscale" />
+                  <img src="https://picsum.photos/seed/sivo/800/800" alt="SIVO" className="h-full w-full object-cover opacity-60 grayscale group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-700" />
                 </div>
                 <div className="flex flex-1 flex-col justify-center p-6 md:p-12">
-                  <h2 className="mb-2 text-3xl font-light uppercase tracking-widest md:mb-4 md:text-6xl">SIVO</h2>
+                  <h2 className="mb-2 text-3xl font-light uppercase tracking-widest md:mb-4 md:text-6xl group-hover:text-white text-white/90 transition-colors duration-700">SIVO</h2>
                   <p className="mb-6 text-sm font-light tracking-wider text-neutral-400 md:mb-10 md:text-lg">Sign to speech & speech to sign</p>
                   <div className="mt-auto flex flex-col gap-3 md:gap-6">
                     <div>
@@ -532,18 +533,18 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="relative hidden flex-1 border-l border-white/10 md:block">
-                  <img src="https://picsum.photos/seed/sivo/800/800" alt="SIVO" className="h-full w-full object-cover opacity-50 grayscale transition-all duration-700 hover:opacity-100 hover:grayscale-0" />
+                  <img src="https://picsum.photos/seed/sivo/800/800" alt="SIVO" className="h-full w-full object-cover opacity-50 grayscale transition-all duration-700 group-hover:opacity-100 group-hover:grayscale-0" />
                 </div>
-              </div>
+              </Link>
             </ScrollStackItem>
 
             <ScrollStackItem>
-              <div className="mx-auto flex min-h-[50vh] w-[92vw] max-w-6xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#111111] md:h-[65vh] md:w-[80vw] md:flex-row">
+              <Link href="/portfolio/agrimind" className="group cursor-pointer mx-auto flex min-h-[50vh] w-[92vw] max-w-6xl flex-col overflow-hidden rounded-2xl border border-transparent hover:border-white/20 transition-all duration-700 bg-[#111111] md:h-[65vh] md:w-[80vw] md:flex-row">
                 <div className="relative h-40 w-full shrink-0 border-b border-white/10 md:hidden">
-                  <img src="https://picsum.photos/seed/agrimind/800/800" alt="Agrimind" className="h-full w-full object-cover opacity-60 grayscale" />
+                  <img src="https://picsum.photos/seed/agrimind/800/800" alt="Agrimind" className="h-full w-full object-cover opacity-60 grayscale group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-700" />
                 </div>
                 <div className="flex flex-1 flex-col justify-center p-6 md:p-12">
-                  <h2 className="mb-2 text-3xl font-light uppercase tracking-widest md:mb-4 md:text-6xl">Agrimind</h2>
+                  <h2 className="mb-2 text-3xl font-light uppercase tracking-widest md:mb-4 md:text-6xl group-hover:text-white text-white/90 transition-colors duration-700">Agrimind</h2>
                   <p className="mb-6 text-sm font-light tracking-wider text-neutral-400 md:mb-10 md:text-lg">AI farmers resource allocation</p>
                   <div className="mt-auto flex flex-col gap-3 md:gap-6">
                     <div>
@@ -557,18 +558,18 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="relative hidden flex-1 border-l border-white/10 md:block">
-                  <img src="https://picsum.photos/seed/agrimind/800/800" alt="Agrimind" className="h-full w-full object-cover opacity-50 grayscale transition-all duration-700 hover:opacity-100 hover:grayscale-0" />
+                  <img src="https://picsum.photos/seed/agrimind/800/800" alt="Agrimind" className="h-full w-full object-cover opacity-50 grayscale transition-all duration-700 group-hover:opacity-100 group-hover:grayscale-0" />
                 </div>
-              </div>
+              </Link>
             </ScrollStackItem>
 
             <ScrollStackItem>
-              <div className="mx-auto flex min-h-[50vh] w-[92vw] max-w-6xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#111111] md:h-[65vh] md:w-[80vw] md:flex-row">
+              <Link href="/portfolio/quant" className="group cursor-pointer mx-auto flex min-h-[50vh] w-[92vw] max-w-6xl flex-col overflow-hidden rounded-2xl border border-transparent hover:border-white/20 transition-all duration-700 bg-[#111111] md:h-[65vh] md:w-[80vw] md:flex-row">
                 <div className="relative h-40 w-full shrink-0 border-b border-white/10 md:hidden">
-                  <img src="https://picsum.photos/seed/quant/800/800" alt="Semi-Quant" className="h-full w-full object-cover opacity-60 grayscale" />
+                  <img src="https://picsum.photos/seed/quant/800/800" alt="Semi-Quant" className="h-full w-full object-cover opacity-60 grayscale group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-700" />
                 </div>
                 <div className="flex flex-1 flex-col justify-center p-6 md:p-12">
-                  <h2 className="mb-2 text-3xl font-light uppercase tracking-widest md:mb-4 md:text-5xl">Semi-Quant Auto</h2>
+                  <h2 className="mb-2 text-3xl font-light uppercase tracking-widest md:mb-4 md:text-5xl group-hover:text-white text-white/90 transition-colors duration-700">Semi-Quant Auto</h2>
                   <p className="mb-6 text-sm font-light tracking-wider text-neutral-400 md:mb-10 md:text-lg">Future market strategy Automation</p>
                   <div className="mt-auto flex flex-col gap-3 md:gap-6">
                     <div>
@@ -582,18 +583,18 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="relative hidden flex-1 border-l border-white/10 md:block">
-                  <img src="https://picsum.photos/seed/quant/800/800" alt="Quant" className="h-full w-full object-cover opacity-50 grayscale transition-all duration-700 hover:opacity-100 hover:grayscale-0" />
+                  <img src="https://picsum.photos/seed/quant/800/800" alt="Quant" className="h-full w-full object-cover opacity-50 grayscale transition-all duration-700 group-hover:opacity-100 group-hover:grayscale-0" />
                 </div>
-              </div>
+              </Link>
             </ScrollStackItem>
 
             <ScrollStackItem>
-              <div className="mx-auto flex min-h-[50vh] w-[92vw] max-w-6xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#111111] md:h-[65vh] md:w-[80vw] md:flex-row">
+              <Link href="/portfolio/startup" className="group cursor-pointer mx-auto flex min-h-[50vh] w-[92vw] max-w-6xl flex-col overflow-hidden rounded-2xl border border-transparent hover:border-white/20 transition-all duration-700 bg-[#111111] md:h-[65vh] md:w-[80vw] md:flex-row">
                 <div className="relative h-40 w-full shrink-0 border-b border-white/10 md:hidden">
-                  <img src="https://picsum.photos/seed/startup/800/800" alt="Startup" className="h-full w-full object-cover opacity-60 grayscale" />
+                  <img src="https://picsum.photos/seed/startup/800/800" alt="Startup" className="h-full w-full object-cover opacity-60 grayscale group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-700" />
                 </div>
                 <div className="flex flex-1 flex-col justify-center p-6 md:p-12">
-                  <h2 className="mb-2 text-3xl font-light uppercase tracking-widest md:mb-4 md:text-5xl">Startup Analyser</h2>
+                  <h2 className="mb-2 text-3xl font-light uppercase tracking-widest md:mb-4 md:text-5xl group-hover:text-white text-white/90 transition-colors duration-700">Startup Analyser</h2>
                   <p className="mb-6 text-sm font-light tracking-wider text-neutral-400 md:mb-10 md:text-lg">AI startup analyser using RAG system</p>
                   <div className="mt-auto flex flex-col gap-3 md:gap-6">
                     <div>
@@ -607,18 +608,18 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="relative hidden flex-1 border-l border-white/10 md:block">
-                  <img src="https://picsum.photos/seed/startup/800/800" alt="Startup" className="h-full w-full object-cover opacity-50 grayscale transition-all duration-700 hover:opacity-100 hover:grayscale-0" />
+                  <img src="https://picsum.photos/seed/startup/800/800" alt="Startup" className="h-full w-full object-cover opacity-50 grayscale transition-all duration-700 group-hover:opacity-100 group-hover:grayscale-0" />
                 </div>
-              </div>
+              </Link>
             </ScrollStackItem>
 
             <ScrollStackItem>
-              <div className="mx-auto flex min-h-[50vh] w-[92vw] max-w-6xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#111111] md:h-[65vh] md:w-[80vw] md:flex-row">
+              <Link href="/portfolio/armall" className="group cursor-pointer mx-auto flex min-h-[50vh] w-[92vw] max-w-6xl flex-col overflow-hidden rounded-2xl border border-transparent hover:border-white/20 transition-all duration-700 bg-[#111111] md:h-[65vh] md:w-[80vw] md:flex-row">
                 <div className="relative h-40 w-full shrink-0 border-b border-white/10 md:hidden">
-                  <img src="https://picsum.photos/seed/armall/800/800" alt="ArMall" className="h-full w-full object-cover opacity-60 grayscale" />
+                  <img src="https://picsum.photos/seed/armall/800/800" alt="ArMall" className="h-full w-full object-cover opacity-60 grayscale group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-700" />
                 </div>
                 <div className="flex flex-1 flex-col justify-center p-6 md:p-12">
-                  <h2 className="mb-2 text-3xl font-light uppercase tracking-widest md:mb-4 md:text-6xl">ArMall.pk</h2>
+                  <h2 className="mb-2 text-3xl font-light uppercase tracking-widest md:mb-4 md:text-6xl group-hover:text-white text-white/90 transition-colors duration-700">ArMall.pk</h2>
                   <p className="mb-6 text-sm font-light tracking-wider text-neutral-400 md:mb-10 md:text-lg">Ecommerce website design</p>
                   <div className="mt-auto flex flex-col gap-3 md:gap-6">
                     <div>
@@ -632,9 +633,9 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="relative hidden flex-1 border-l border-white/10 md:block">
-                  <img src="https://picsum.photos/seed/armall/800/800" alt="ArMall" className="h-full w-full object-cover opacity-50 grayscale transition-all duration-700 hover:opacity-100 hover:grayscale-0" />
+                  <img src="https://picsum.photos/seed/armall/800/800" alt="ArMall" className="h-full w-full object-cover opacity-50 grayscale transition-all duration-700 group-hover:opacity-100 group-hover:grayscale-0" />
                 </div>
-              </div>
+              </Link>
             </ScrollStackItem>
           </ScrollStack>
         </div>
