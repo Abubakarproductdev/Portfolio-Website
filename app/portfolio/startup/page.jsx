@@ -59,9 +59,9 @@ By ignoring the standard "hand speed" and "null sign" advice and building a cust
     description: "Agrimind revolutionizes modern agriculture by bringing intelligent resource allocation to the fingertips of farmers. Using an ecosystem of specialized AI agents powered by Langgraph, it predicts crop yields, optimizes water usage, and provides real-time market insights. The backend architecture seamlessly connects Python AI modeling with a robust Node.js and MongoDB foundation, while next-generation web technologies deliver actionable insights.",
     tech: { backend: "Python (AI agents), Langgraph, Node.js, MongoDB", frontend: "Next.js, Tailwind" },
     images: ["https://picsum.photos/seed/agrimind1/1920/1080", "https://picsum.photos/seed/agrimind2/1920/1080"],
-    hardestPath: "The hardest part of this project was building the AI model. It took me months to collect and label the data, and even longer to train the model. I also had to learn a lot about computer vision and machine learning to get it right. But it was all worth it in the end.",
-    challenges: "The biggest challenge was building the AI model. It took me months to collect and label the data, and even longer to train the model. I also had to learn a lot about computer vision and machine learning to get it right. But it was all worth it in the end.",
-    MySolutions: "abab"
+    hardestPath: "Orchestrating multiple specialized AI agents without them getting stuck in infinite reasoning loops or losing context.",
+    challenges: "The main challenge was managing the state between the Python Langgraph agents and the Node.js backend. Passing complex agricultural data seamlessly while keeping response times low was difficult.",
+    MySolutions: "I designed a strict state-graph protocol in Langgraph to cap reasoning steps. I also built a unified API layer in Node.js to parse the agent outputs cleanly before delivering them to the Next.js frontend."
   },
   quant: {
     title: "Semi-Quant Auto",
@@ -69,9 +69,9 @@ By ignoring the standard "hand speed" and "null sign" advice and building a cust
     description: "A high-performance algorithmic trading system engineered for future markets. Semi-Quant Auto minimizes human error and emotion by automating complex quantitative strategies. Developed purely in Python, the pipeline manages massive streams of market data, executes split-second decisions, and visualizes live performance through dynamic charting dashboards.",
     tech: { backend: "Python", frontend: "Python" },
     images: ["https://picsum.photos/seed/quant1/1920/1080", "https://picsum.photos/seed/quant2/1920/1080"],
-    hardestPath: "The hardest part of this project was building the AI model. It took me months to collect and label the data, and even longer to train the model. I also had to learn a lot about computer vision and machine learning to get it right. But it was all worth it in the end.",
-    challenges: "The biggest challenge was building the AI model. It took me months to collect and label the data, and even longer to train the model. I also had to learn a lot about computer vision and machine learning to get it right. But it was all worth it in the end.",
-    MySolutions: "abab"
+    hardestPath: "Ensuring near-zero latency data processing and avoiding exchange API rate limits during high market volatility.",
+    challenges: "Handling continuous, massive streams of tick data caused memory leaks in early versions. Additionally, rendering real-time charts blocked the main execution thread.",
+    MySolutions: "I rewrote the data ingestion pipeline using Python's asyncio for concurrent processing. I also decoupled the trading logic from the UI charting, running them on separate processes to ensure executions never lagged."
   },
   startup: {
     title: "Startup Analyser",
@@ -79,9 +79,9 @@ By ignoring the standard "hand speed" and "null sign" advice and building a cust
     description: "Startup Analyser provides deep, actionable intelligence on emerging companies by leveraging a sophisticated Retrieval-Augmented Generation (RAG) system. Investors and analysts can explore massive datasets of startup metrics, pitch decks, and market positioning. The system combines Redis caching and MongoDB for extreme speed, presented via a sleek React interface.",
     tech: { backend: "Python, Node.js, Express, MongoDB, Redis", frontend: "React.js" },
     images: ["https://picsum.photos/seed/startup1/1920/1080", "https://picsum.photos/seed/startup2/1920/1080"],
-    hardestPath: "The hardest part of this project was building the AI model. It took me months to collect and label the data, and even longer to train the model. I also had to learn a lot about computer vision and machine learning to get it right. But it was all worth it in the end.",
-    challenges: "The biggest challenge was building the AI model. It took me months to collect and label the data, and even longer to train the model. I also had to learn a lot about computer vision and machine learning to get it right. But it was all worth it in the end.",
-    MySolutions: "abab"
+    hardestPath: "Achieving accurate context retrieval from highly unstructured data like pitch decks and complex financial metrics.",
+    challenges: "Standard RAG approaches kept returning irrelevant chunks of text. Furthermore, querying the vector database simultaneously with MongoDB caused high latency on the frontend.",
+    MySolutions: "I tuned the RAG embedding strategy to prioritize financial semantics and structural context. To solve the speed issue, I implemented Redis to cache frequent queries, slashing load times for the React UI."
   },
   armall: {
     title: "ArMall.pk",
@@ -89,9 +89,9 @@ By ignoring the standard "hand speed" and "null sign" advice and building a cust
     description: "ArMall is a premium e-commerce platform redefining digital retail with speed, absolute security, and immersive design. The architecture is built on Next.js for lightning-fast server-side rendering, secured by Clerk authentication routines, and scaled globally with MongoDB and Mongoose. The frontend provides a buttery-smooth shopping experience accented by high-contrast brutalist aesthetics.",
     tech: { backend: "Next.js, Mongoose, Clerk, MongoDB", frontend: "Next.js, Tailwind" },
     images: ["https://picsum.photos/seed/armall1/1920/1080", "https://picsum.photos/seed/armall2/1920/1080"],
-    hardestPath: "The hardest part of this project was building the AI model. It took me months to collect and label the data, and even longer to train the model. I also had to learn a lot about computer vision and machine learning to get it right. But it was all worth it in the end.",
-    challenges: "The biggest challenge was building the AI model. It took me months to collect and label the data, and even longer to train the model. I also had to learn a lot about computer vision and machine learning to get it right. But it was all worth it in the end.",
-    MySolutions: "abab"
+    hardestPath: "Maintaining strict data consistency between the Clerk authentication system and our custom MongoDB user records.",
+    challenges: "Managing complex shopping cart states during Next.js Server-Side Rendering (SSR) without breaking the fluid UI animations or causing hydration errors.",
+    MySolutions: "I utilized Clerk webhooks to instantly sync user data events into the Mongoose schemas. I also optimized Next.js server actions to handle cart mutations in the background, keeping the Tailwind interface snappy."
   }
 };
 
