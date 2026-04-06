@@ -48,7 +48,7 @@ const bioContent = [
   { l: "THAT RESONATE", r: "WITH USERS" },
   { l: "WORLDWIDE.", r: "LET'S TALK." },
 ];
-
+const Email = "sshaiy2255@gmail.com"
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [isImagesLoaded, setIsImagesLoaded] = useState(false);
@@ -78,7 +78,7 @@ export default function Home() {
 
       img.onload = () => {
         if (typeof img.decode === "function") {
-          img.decode().catch(() => {}).finally(finish);
+          img.decode().catch(() => { }).finally(finish);
           return;
         }
 
@@ -648,13 +648,27 @@ export default function Home() {
         <h2 className="cursor-pointer text-center text-4xl font-extralight uppercase tracking-widest text-white/90 transition-colors hover:text-white md:text-8xl">
           Let&apos;s Talk.
         </h2>
-        <a href="mailto:hello@example.com" className="mt-8 break-all text-center text-xs font-light uppercase tracking-widest text-neutral-500 transition-colors hover:text-white md:text-sm">
-          hello@yourdomain.com
+        <a href={`mailto:${Email}`} className="mt-8 break-all text-center text-xs font-light uppercase tracking-widest text-neutral-500 transition-colors hover:text-white md:text-sm">
+          {Email}
         </a>
         <div className="mt-12 flex flex-wrap justify-center gap-6 text-xs uppercase tracking-widest text-neutral-600 md:mt-16 md:gap-10 md:text-sm">
-          <a href="#" className="transition-colors hover:text-white">LinkedIn</a>
-          <a href="#" className="transition-colors hover:text-white">GitHub</a>
-          <a href="#" className="transition-colors hover:text-white">Twitter</a>
+          <a
+            href="https://www.linkedin.com/in/muhammad-abubakar-industrial-designer/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="transition-colors hover:text-white"
+          >
+            LinkedIn
+          </a>
+
+          <a
+            href="https://github.com/Abubakarproductdev"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="transition-colors hover:text-white"
+          >
+            GitHub
+          </a>
         </div>
       </section>
     </div>
