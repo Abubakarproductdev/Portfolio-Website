@@ -291,12 +291,7 @@ export default function PortfolioPage() {
           >
             <h3 className="text-xs uppercase tracking-[0.5em] text-white/50 mb-10">06 / Demo Video</h3>
             <div className="w-full aspect-video rounded-2xl overflow-hidden border border-white/10 relative shadow-2xl bg-black">
-              <video
-                src="https://www.w3schools.com/html/mov_bbb.mp4"
-                controls
-                className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-500"
-                poster={data.images[0]}
-              />
+             
             </div>
           </motion.div>
         </section>
