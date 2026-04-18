@@ -281,20 +281,7 @@ export default function PortfolioPage() {
         </section>
 
         {/* DEMO VIDEO SECTION */}
-        <section className="py-24 px-6 md:px-[10vw] border-t border-white/5 bg-[#050505]">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8 }}
-            className="max-w-5xl mx-auto"
-          >
-            <h3 className="text-xs uppercase tracking-[0.5em] text-white/50 mb-10">06 / Demo Video</h3>
-            <div className="w-full aspect-video rounded-2xl overflow-hidden border border-white/10 relative shadow-2xl bg-black">
-              
-            </div>
-          </motion.div>
-        </section>
+        
 
         {/* NEXT PROJECT / FOOTER */}
         <section className="py-40 flex justify-center text-center px-6">
