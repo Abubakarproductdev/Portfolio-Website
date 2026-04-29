@@ -95,9 +95,13 @@ export default function App() {
 
 function Home() {
   const [isLoading, setIsLoading] = createSignal(true);
-  const [isImagesLoaded, setIsImagesLoaded] = createSignal(false);
+  const [isFramesLoaded, setIsFramesLoaded] = createSignal(false);
+  const [isComponentsLoaded, setIsComponentsLoaded] = createSignal(false);
+  const [isPhysicsLoaded, setIsPhysicsLoaded] = createSignal(false);
   const [isWindowLoaded, setIsWindowLoaded] = createSignal(document.readyState === "complete");
   const [showPhysicsScene, setShowPhysicsScene] = createSignal(false);
+  const [loadingProgress, setLoadingProgress] = createSignal(0);
+  const [loadingStatus, setLoadingStatus] = createSignal("Preparing");
   const [isMobile, setIsMobile] = createSignal(false);
   let canvas;
   let container;
@@ -174,6 +178,8 @@ function Home() {
     new Promise((resolve) => {
       const img = new Image();
       img.decoding = "async";
+      img.loading = "eager";
+      img.fetchPriority = "high";
       const finish = () => resolve(img);
       img.onload = () => {
         if (typeof img.decode === "function") {
@@ -198,11 +204,11 @@ function Home() {
   });
 
   createEffect(() => {
-    if (isImagesLoaded() && isWindowLoaded()) {
+    if (isFramesLoaded() && isComponentsLoaded() && isPhysicsLoaded() && isWindowLoaded()) {
       const timer = setTimeout(() => {
         setIsLoading(false);
         window.scrollTo(0, 0);
-      }, 120);
+      }, 350);
       onCleanup(() => clearTimeout(timer));
     }
   });
@@ -242,23 +248,30 @@ function Home() {
       onCleanup(() => window.removeEventListener("load", handleLoad));
     }
 
-    const fallbackTimer = setTimeout(() => setIsLoading(false), 15000);
-    let physicsObserver;
+    const fallbackTimer = setTimeout(() => {
+      setIsFramesLoaded(true);
+      setIsComponentsLoaded(true);
+      setIsPhysicsLoaded(true);
+      setLoadingProgress(100);
+      setLoadingStatus("Starting");
+    }, 30000);
 
-    if (!mobileQuery.matches && "IntersectionObserver" in window) {
-      physicsObserver = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setShowPhysicsScene(true);
-            physicsObserver?.disconnect();
-          }
-        },
-        { rootMargin: "700px 0px" },
-      );
-      if (techSection) physicsObserver.observe(techSection);
-    } else if (!mobileQuery.matches) {
-      setShowPhysicsScene(true);
+    setShowPhysicsScene(!mobileQuery.matches);
+    if (mobileQuery.matches) {
+      setIsPhysicsLoaded(true);
     }
+
+    const preloadComponentChunks = async () => {
+      setLoadingStatus("Loading interface");
+      await Promise.all([
+        import("./components/ProjectScene"),
+        mobileQuery.matches ? Promise.resolve() : import("./components/PhysicsScene"),
+      ]);
+
+      if (!cancelled) {
+        setIsComponentsLoaded(true);
+      }
+    };
 
     const loadFrame = async (index) => {
       const img = await preloadImage(getFrameSrc(index));
@@ -268,34 +281,58 @@ function Home() {
     };
 
     const preloadFrames = async () => {
+      setLoadingStatus("Loading frames");
       const firstFrame = await loadFrame(1);
       if (firstFrame) {
         queueFrameDraw(firstFrame);
-        setIsImagesLoaded(true);
+        setLoadingProgress(1);
       }
 
-      const mobile = mobileQuery.matches;
-      const frameStride = mobile ? 4 : 1;
-      let nextFrameIndex = mobile ? 5 : 2;
-      const criticalFrames = mobile
-        ? [16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192]
-        : [8, 16, 24, 32, 40, 56, 72, 88, 104, 120, 136, 152, 168, 184, 192];
-      await Promise.all(criticalFrames.map((index) => loadFrame(index)));
+      const priorityFrames = [16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192];
+      const remainingFrames = Array.from({ length: FRAME_COUNT }, (_, index) => index + 1)
+        .filter((index) => index !== 1)
+        .sort((a, b) => {
+          const aPriority = priorityFrames.includes(a) ? 0 : 1;
+          const bPriority = priorityFrames.includes(b) ? 0 : 1;
+          return aPriority - bPriority || a - b;
+        });
 
-      const workers = Array.from({ length: mobile ? 1 : 4 }, async () => {
-        while (!cancelled && nextFrameIndex <= FRAME_COUNT) {
-          const frameIndex = nextFrameIndex;
-          nextFrameIndex += frameStride;
-          if (images[frameIndex - 1]) continue;
-          await loadFrame(frameIndex);
+      let loadedCount = firstFrame ? 1 : 0;
+      let nextFrameIndex = 0;
+      const concurrency = mobileQuery.matches ? 6 : 12;
+
+      const workers = Array.from({ length: concurrency }, async () => {
+        while (!cancelled && nextFrameIndex < remainingFrames.length) {
+          const frameIndex = remainingFrames[nextFrameIndex];
+          nextFrameIndex += 1;
+
+          if (!images[frameIndex - 1]) {
+            await loadFrame(frameIndex);
+          }
+
+          loadedCount += 1;
+          setLoadingProgress(Math.min(99, Math.round((loadedCount / FRAME_COUNT) * 100)));
         }
       });
 
       await Promise.all(workers);
+
+      if (!cancelled) {
+        setLoadingProgress(100);
+        setIsFramesLoaded(true);
+        setLoadingStatus("Finalizing");
+      }
     };
 
+    preloadComponentChunks().catch(() => {
+      if (!cancelled) setIsComponentsLoaded(true);
+    });
+
     preloadFrames().catch(() => {
-      if (!cancelled) setIsImagesLoaded(true);
+      if (!cancelled) {
+        setIsFramesLoaded(true);
+        setLoadingStatus("Starting");
+      }
     });
 
     const handleResize = () => {
@@ -399,7 +436,6 @@ function Home() {
     onCleanup(() => {
       cancelled = true;
       clearTimeout(fallbackTimer);
-      physicsObserver?.disconnect();
       if (typeof mobileQuery.removeEventListener === "function") {
         mobileQuery.removeEventListener("change", updateMobileState);
       } else {
@@ -430,7 +466,7 @@ function Home() {
       <Show when={isLoading()}>
         <div
           class={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#050505] ${
-            isImagesLoaded() ? "loading-exit" : ""
+            isFramesLoaded() && isComponentsLoaded() && isPhysicsLoaded() ? "loading-exit" : ""
           }`}
         >
           <div class="relative flex items-center justify-center">
@@ -438,7 +474,13 @@ function Home() {
             <div class="loader-ring-reverse absolute h-32 w-32 rounded-full border-[1px] border-white/5 border-r-white/30 border-b-white/30 md:h-48 md:w-48" />
             <div class="loader-pulse absolute h-2 w-2 rounded-full bg-white md:h-3 md:w-3" />
           </div>
-          <div class="loader-text mt-12 text-xs font-light tracking-[0.5em] text-white/60 uppercase md:text-sm">Loading</div>
+          <div class="loader-text mt-12 text-xs font-light tracking-[0.5em] text-white/60 uppercase md:text-sm">
+            {loadingStatus()}
+          </div>
+          <div class="mt-6 h-px w-56 overflow-hidden bg-white/10 md:w-72">
+            <div class="h-full bg-white/70 transition-[width] duration-300" style={{ width: `${loadingProgress()}%` }} />
+          </div>
+          <div class="mt-4 text-[10px] font-light tracking-[0.4em] text-white/35 uppercase">{loadingProgress()}%</div>
         </div>
       </Show>
 
@@ -480,7 +522,7 @@ function Home() {
         >
           <Show when={showPhysicsScene()}>
             <Suspense fallback={null}>
-              <PhysicsScene />
+              <PhysicsScene onLoaded={() => setIsPhysicsLoaded(true)} />
             </Suspense>
           </Show>
         </Show>
